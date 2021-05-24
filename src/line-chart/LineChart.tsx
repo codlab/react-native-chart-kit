@@ -620,16 +620,17 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       }
 
       lines.forEach((points, index) => {
+        const x1 =
+          paddingRight +
+          ((width - paddingRight) / dataset.data.length) *
+            (dataset.data.length - 1);
+        const y1 = (height / 4) * 3 + paddingTop;
+        const x2 = paddingRight;
+        const y2 = (height / 4) * 3 + paddingTop;
         output.push(
           <Polygon
             key={index}
-            points={
-              points.join(" ") +
-              ` ${paddingRight +
-                ((width - paddingRight) / dataset.data.length) *
-                  (dataset.data.length - 1)},${(height / 4) * 3 +
-                paddingTop} ${paddingRight},${(height / 4) * 3 + paddingTop}`
-            }
+            points={points.join(" ") + ` ${x1},${y1} ${x2},${y2}`}
             fill={`url(#fillShadowGradient${
               useColorFromDataset ? `_${index}` : ""
             })`}
