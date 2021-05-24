@@ -73,6 +73,7 @@ declare class StackedBarChart extends AbstractChart<
       | "color"
       | "style"
       | "backgroundColor"
+      | "fontSize"
       | "height"
       | "paddingRight"
       | "paddingTop"

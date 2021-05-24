@@ -29,6 +29,7 @@ export interface AbstractChartConfig extends ChartConfig {
   verticalLabelRotation?: number;
   formatXLabel?: (xLabel: string) => string;
   verticalLabelsHeightPercentage?: number;
+  fontSize?: number;
 }
 export declare type AbstractChartState = {};
 export declare const DEFAULT_X_LABELS_HEIGHT_PERCENTAGE = 0.75;
@@ -412,6 +413,7 @@ declare class AbstractChart<
       | "color"
       | "style"
       | "backgroundColor"
+      | "fontSize"
       | "height"
       | "paddingRight"
       | "paddingTop"

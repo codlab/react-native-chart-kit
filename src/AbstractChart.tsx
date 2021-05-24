@@ -33,6 +33,7 @@ export interface AbstractChartConfig extends ChartConfig {
   verticalLabelRotation?: number;
   formatXLabel?: (xLabel: string) => string;
   verticalLabelsHeightPercentage?: number;
+  fontSize?: number;
 }
 
 export type AbstractChartState = {};
@@ -99,10 +100,11 @@ class AbstractChart<
     const {
       propsForLabels = {},
       color,
-      labelColor = color
+      labelColor = color,
+      fontSize
     } = this.props.chartConfig;
     return {
-      fontSize: 12,
+      fontSize: fontSize || 12,
       fill: labelColor(0.8),
       ...propsForLabels
     };
@@ -270,7 +272,17 @@ class AbstractChart<
       renderLabelsEvenIfHidden
     } = this.props;
 
-    const fontSize = 12;
+    const labelProps = {
+      ...this.getPropsForLabels(),
+      ...this.getPropsForVerticalLabels()
+    };
+
+    var rawFontSize = labelProps.fontSize;
+
+    var tf: number = rawFontSize ? parseInt(`${rawFontSize}`) : 12;
+    if (isNaN(tf)) tf = 12;
+    const fontSize = tf || 12;
+    labelProps.fontSize = fontSize;
 
     let fac = 1;
     if (stackedBar) {
@@ -302,8 +314,7 @@ class AbstractChart<
           x={x}
           y={y}
           textAnchor={verticalLabelRotation === 0 ? "middle" : "start"}
-          {...this.getPropsForLabels()}
-          {...this.getPropsForVerticalLabels()}
+          {...labelProps}
         >
           {`${formatXLabel(label)}${xAxisLabel}`}
         </Text>
