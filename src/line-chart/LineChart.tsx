@@ -581,7 +581,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
           const y =
             ((baseHeight - this.calcHeight(data, datas, height)) / 4) * 3 +
             paddingTop;
-          return `${x},${y}`;
+          return { point: `${x},${y}`, index };
         })
       );
     };
@@ -592,7 +592,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     data.forEach((dataset, index) => {
       const length = dataset.data.length;
 
-      var lines: string[][] = [];
+      var lines: { point: string; index: number }[][] = [];
 
       const can_skip =
         !!skipped && skipped.length > 0 && skipped.length >= length;
@@ -620,17 +620,30 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       }
 
       lines.forEach((points, index) => {
-        const x1 =
+        var x1: string | number =
           paddingRight +
           ((width - paddingRight) / dataset.data.length) *
             (dataset.data.length - 1);
+        if (points.length > 0) {
+          //here, we check if we need to get the last point of the line
+          const last = points[points.length - 1];
+          x1 = last.point.split(",")[0];
+        }
         const y1 = (height / 4) * 3 + paddingTop;
-        const x2 = paddingRight;
+        var x2: string | number = paddingRight;
+        if (points.length > 0 && points[0].index > 0) {
+          //here we check if we need to get the first line's point x to make the upper shadow
+          const first = points[0];
+          x2 = first.point.split(",")[0];
+        }
         const y2 = (height / 4) * 3 + paddingTop;
         output.push(
           <Polygon
             key={index}
-            points={points.join(" ") + ` ${x1},${y1} ${x2},${y2}`}
+            points={
+              points.map(({ point }) => point).join(" ") +
+              ` ${x1},${y1} ${x2},${y2}`
+            }
             fill={`url(#fillShadowGradient${
               useColorFromDataset ? `_${index}` : ""
             })`}
