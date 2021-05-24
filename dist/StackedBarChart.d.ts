@@ -83,6 +83,7 @@ declare class StackedBarChart extends AbstractChart<
       | "labelColor"
       | "propsForVerticalLabels"
       | "propsForHorizontalLabels"
+      | "verticalLinesInterval"
       | "count"
       | "horizontalLabelRotation"
       | "formatYLabel"

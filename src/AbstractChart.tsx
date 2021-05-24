@@ -18,6 +18,7 @@ export interface AbstractChartProps {
 }
 
 export interface AbstractChartConfig extends ChartConfig {
+  verticalLinesInterval?: number;
   count?: number;
   data?: Dataset[];
   width?: number;
@@ -316,6 +317,7 @@ class AbstractChart<
     height,
     paddingTop,
     paddingRight,
+    verticalLinesInterval,
     verticalLabelsHeightPercentage = DEFAULT_X_LABELS_HEIGHT_PERCENTAGE
   }: Omit<
     Pick<
@@ -325,14 +327,18 @@ class AbstractChart<
       | "height"
       | "paddingRight"
       | "paddingTop"
+      | "verticalLinesInterval"
       | "verticalLabelsHeightPercentage"
     >,
     "data"
   > & { data: number[] }) => {
     const { yAxisInterval = 1 } = this.props;
 
-    return [...new Array(Math.ceil(data.length / yAxisInterval))].map(
-      (_, i) => {
+    return [...new Array(Math.ceil(data.length / yAxisInterval))]
+      .map((_, i) => {
+        if (verticalLinesInterval && i % verticalLinesInterval != 0) {
+          return null;
+        }
         return (
           <Line
             key={Math.random()}
@@ -349,8 +355,8 @@ class AbstractChart<
             {...this.getPropsForBackgroundLines()}
           />
         );
-      }
-    );
+      })
+      .filter(d => !!d);
   };
 
   renderVerticalLine = ({

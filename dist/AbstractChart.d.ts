@@ -14,6 +14,7 @@ export interface AbstractChartProps {
   renderLabelsEvenIfHidden?: boolean;
 }
 export interface AbstractChartConfig extends ChartConfig {
+  verticalLinesInterval?: number;
   count?: number;
   data?: Dataset[];
   width?: number;
@@ -421,6 +422,7 @@ declare class AbstractChart<
       | "labelColor"
       | "propsForVerticalLabels"
       | "propsForHorizontalLabels"
+      | "verticalLinesInterval"
       | "count"
       | "horizontalLabelRotation"
       | "formatYLabel"
@@ -485,6 +487,7 @@ declare class AbstractChart<
     height,
     paddingTop,
     paddingRight,
+    verticalLinesInterval,
     verticalLabelsHeightPercentage
   }: Pick<
     Pick<
@@ -494,12 +497,14 @@ declare class AbstractChart<
       | "paddingTop"
       | "width"
       | "data"
+      | "verticalLinesInterval"
       | "verticalLabelsHeightPercentage"
     >,
     | "height"
     | "paddingRight"
     | "paddingTop"
     | "width"
+    | "verticalLinesInterval"
     | "verticalLabelsHeightPercentage"
   > & {
     data: number[];
