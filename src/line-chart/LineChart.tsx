@@ -162,6 +162,14 @@ export interface LineChartProps extends AbstractChartProps {
    */
   bezier?: boolean;
   /**
+   * Skipped points : optional array where its length needs to match the data.length
+   *
+   * The rendered line will be segmented across the various "skipped" points of the data set
+   *
+   * (note that the data needs to be consistant, values skipped should be something like 0)
+   */
+  dataSkippedSegments?: boolean[];
+  /**
    * Defines the dot color function that is used to calculate colors of dots in a line chart.
    * Takes `(dataPoint, dataPointIndex)` as arguments.
    */
@@ -620,30 +628,68 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
 
     let lastPoint: string;
 
-    data.forEach((dataset, index) => {
-      const points = dataset.data.map((d, i) => {
-        if (d === null) return lastPoint;
-        const x =
-          (i * (width - paddingRight)) / dataset.data.length + paddingRight;
-        const y =
-          ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
-          paddingTop;
-        lastPoint = `${x},${y}`;
-        return `${x},${y}`;
-      });
-
-      output.push(
-        <Polyline
-          key={index}
-          strokeLinejoin={linejoinType}
-          points={points.join(" ")}
-          fill="none"
-          stroke={this.getColor(dataset, 0.2)}
-          strokeWidth={this.getStrokeWidth(dataset)}
-          strokeDasharray={dataset.strokeDashArray}
-          strokeDashoffset={dataset.strokeDashOffset}
-        />
+    const toPoints = (
+      dataset: Dataset,
+      lines: { data: number | null; index: number }[][]
+    ) => {
+      return lines.map(line =>
+        line.map(({ data, index }) => {
+          if (data === null) return lastPoint;
+          const x =
+            (index * (width - paddingRight)) / dataset.data.length +
+            paddingRight;
+          const y =
+            ((baseHeight - this.calcHeight(data, datas, height)) / 4) * 3 +
+            paddingTop;
+          lastPoint = `${x},${y}`;
+          return `${x},${y}`;
+        })
       );
+    };
+
+    const skipped = this.props.dataSkippedSegments;
+
+    data.forEach((dataset, index) => {
+      const length = dataset.data.length;
+
+      var lines: string[][] = [];
+
+      if (!!skipped && skipped.length > 0 && skipped.length >= length) {
+        var current_line: { data: number; index: number }[] = [];
+        var temp: { data: number; index: number }[][] = [];
+
+        dataset.data.map((data, index) => {
+          if (!!skipped[index]) {
+            if (current_line && current_line.length > 0) {
+              temp.push(current_line);
+              current_line = [];
+            }
+          } else {
+            current_line.push({ data, index });
+          }
+        });
+        if (current_line.length > 0) temp.push(current_line);
+
+        lines = toPoints(dataset, temp);
+      } else {
+        const temp = [dataset.data.map((data, index) => ({ data, index }))];
+        lines = toPoints(dataset, temp);
+      }
+
+      lines.forEach(points => {
+        output.push(
+          <Polyline
+            key={index}
+            strokeLinejoin={linejoinType}
+            points={points.join(" ")}
+            fill="none"
+            stroke={this.getColor(dataset, 0.2)}
+            strokeWidth={this.getStrokeWidth(dataset)}
+            strokeDasharray={dataset.strokeDashArray}
+            strokeDashoffset={dataset.strokeDashOffset}
+          />
+        );
+      });
     });
 
     return output;
