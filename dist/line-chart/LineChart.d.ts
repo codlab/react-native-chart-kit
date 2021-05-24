@@ -61,6 +61,10 @@ export interface LineChartProps extends AbstractChartProps {
    */
   withHorizontalLines?: boolean;
   /**
+   *
+   */
+  verticalLinesInterval?: number;
+  /**
    * Show vertical labels - default: True.
    */
   withVerticalLabels?: boolean;

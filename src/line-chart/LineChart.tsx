@@ -84,6 +84,10 @@ export interface LineChartProps extends AbstractChartProps {
    */
   withHorizontalLines?: boolean;
   /**
+   *
+   */
+  verticalLinesInterval?: number;
+  /**
    * Show vertical labels - default: True.
    */
   withVerticalLabels?: boolean;
@@ -915,7 +919,8 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       formatXLabel = xLabel => xLabel,
       segments,
       transparent = false,
-      chartConfig
+      chartConfig,
+      verticalLinesInterval
     } = this.props;
 
     const { scrollableDotHorizontalOffset } = this.state;
@@ -933,7 +938,8 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       width,
       height,
       verticalLabelRotation,
-      horizontalLabelRotation
+      horizontalLabelRotation,
+      verticalLinesInterval
     };
 
     const datas = this.getDatas(data.datasets);
