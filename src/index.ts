@@ -5,6 +5,7 @@ import ProgressChart from "./ProgressChart";
 import StackedBarChart from "./StackedBarChart";
 import ContributionGraph from "./contribution-graph";
 import LineChart from "./line-chart";
+import { AbstractChartConfig } from "./AbstractChart";
 
 export {
   AbstractChart,
@@ -13,5 +14,6 @@ export {
   PieChart,
   ProgressChart,
   ContributionGraph,
-  StackedBarChart
+  StackedBarChart,
+  AbstractChartConfig
 };
