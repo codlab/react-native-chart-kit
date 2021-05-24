@@ -14,6 +14,7 @@ export interface AbstractChartProps {
   xAxisLabel?: string;
   xLabelsOffset?: number;
   hidePointsAtIndex?: number[];
+  renderLabelsEvenIfHidden?: boolean;
 }
 
 export interface AbstractChartConfig extends ChartConfig {
@@ -264,7 +265,8 @@ class AbstractChart<
     const {
       xAxisLabel = "",
       xLabelsOffset = 0,
-      hidePointsAtIndex = []
+      hidePointsAtIndex = [],
+      renderLabelsEvenIfHidden
     } = this.props;
 
     const fontSize = 12;
@@ -275,7 +277,7 @@ class AbstractChart<
     }
 
     return labels.map((label, i) => {
-      if (hidePointsAtIndex.includes(i)) {
+      if (hidePointsAtIndex.includes(i) && !renderLabelsEvenIfHidden) {
         return null;
       }
 

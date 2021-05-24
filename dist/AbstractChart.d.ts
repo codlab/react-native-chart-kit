@@ -11,6 +11,7 @@ export interface AbstractChartProps {
   xAxisLabel?: string;
   xLabelsOffset?: number;
   hidePointsAtIndex?: number[];
+  renderLabelsEvenIfHidden?: boolean;
 }
 export interface AbstractChartConfig extends ChartConfig {
   count?: number;
