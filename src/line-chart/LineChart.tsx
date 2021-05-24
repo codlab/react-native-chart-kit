@@ -702,8 +702,8 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       );
     };
 
-    const skipped = this.props.dataSkippedSegments;
-    const avoid = this.props.hidePointsAtIndex;
+    const skipped = this.props.dataSkippedSegments || [];
+    const avoid = this.props.hidePointsAtIndex || [];
 
     data.forEach((dataset, index) => {
       const length = dataset.data.length;
