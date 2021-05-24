@@ -255,7 +255,7 @@ declare class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     "height" | "paddingRight" | "paddingTop" | "width" | "data"
   > & {
     useColorFromDataset: AbstractChartConfig["useShadowColorFromDataset"];
-  }) => JSX.Element[];
+  }) => any[];
   renderLine: ({
     width,
     height,

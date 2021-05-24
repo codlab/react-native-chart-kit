@@ -569,36 +569,77 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     const datas = this.getDatas(data);
     const baseHeight = this.calcBaseHeight(datas, height);
 
-    return data.map((dataset, index) => {
-      return (
-        <Polygon
-          key={index}
-          points={
-            dataset.data
-              .map((d, i) => {
-                const x =
-                  paddingRight +
-                  (i * (width - paddingRight)) / dataset.data.length;
-
-                const y =
-                  ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
-                  paddingTop;
-
-                return `${x},${y}`;
-              })
-              .join(" ") +
-            ` ${paddingRight +
-              ((width - paddingRight) / dataset.data.length) *
-                (dataset.data.length - 1)},${(height / 4) * 3 +
-              paddingTop} ${paddingRight},${(height / 4) * 3 + paddingTop}`
-          }
-          fill={`url(#fillShadowGradient${
-            useColorFromDataset ? `_${index}` : ""
-          })`}
-          strokeWidth={0}
-        />
+    const toPoints = (
+      dataset: Dataset,
+      lines: { data: number | null; index: number }[][]
+    ) => {
+      return lines.map(line =>
+        line.map(({ data, index }) => {
+          const x =
+            (index * (width - paddingRight)) / dataset.data.length +
+            paddingRight;
+          const y =
+            ((baseHeight - this.calcHeight(data, datas, height)) / 4) * 3 +
+            paddingTop;
+          return `${x},${y}`;
+        })
       );
+    };
+    const skipped = this.props.dataSkippedSegments || [];
+    const avoid = this.props.hidePointsAtIndex || [];
+    const output = [];
+
+    data.forEach((dataset, index) => {
+      const length = dataset.data.length;
+
+      var lines: string[][] = [];
+
+      const can_skip =
+        !!skipped && skipped.length > 0 && skipped.length >= length;
+      const can_avoid = !!avoid && avoid.length && avoid.length <= length;
+      if (can_skip || can_avoid) {
+        var current_line: { data: number; index: number }[] = [];
+        var temp: { data: number; index: number }[][] = [];
+
+        dataset.data.map((data, index) => {
+          if (!!skipped[index] || avoid.find(i => i == index)) {
+            if (current_line && current_line.length > 0) {
+              temp.push(current_line);
+              current_line = [];
+            }
+          } else {
+            current_line.push({ data, index });
+          }
+        });
+        if (current_line.length > 0) temp.push(current_line);
+
+        lines = toPoints(dataset, temp);
+      } else {
+        const temp = [dataset.data.map((data, index) => ({ data, index }))];
+        lines = toPoints(dataset, temp);
+      }
+
+      lines.forEach((points, index) => {
+        output.push(
+          <Polygon
+            key={index}
+            points={
+              points.join(" ") +
+              ` ${paddingRight +
+                ((width - paddingRight) / dataset.data.length) *
+                  (dataset.data.length - 1)},${(height / 4) * 3 +
+                paddingTop} ${paddingRight},${(height / 4) * 3 + paddingTop}`
+            }
+            fill={`url(#fillShadowGradient${
+              useColorFromDataset ? `_${index}` : ""
+            })`}
+            strokeWidth={0}
+          />
+        );
+      });
     });
+
+    return output;
   };
 
   renderLine = ({
@@ -648,18 +689,22 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     };
 
     const skipped = this.props.dataSkippedSegments;
+    const avoid = this.props.hidePointsAtIndex;
 
     data.forEach((dataset, index) => {
       const length = dataset.data.length;
 
       var lines: string[][] = [];
 
-      if (!!skipped && skipped.length > 0 && skipped.length >= length) {
+      const can_skip =
+        !!skipped && skipped.length > 0 && skipped.length >= length;
+      const can_avoid = !!avoid && avoid.length && avoid.length <= length;
+      if (can_skip || can_avoid) {
         var current_line: { data: number; index: number }[] = [];
         var temp: { data: number; index: number }[][] = [];
 
         dataset.data.map((data, index) => {
-          if (!!skipped[index]) {
+          if (!!skipped[index] || avoid.find(i => i == index)) {
             if (current_line && current_line.length > 0) {
               temp.push(current_line);
               current_line = [];
