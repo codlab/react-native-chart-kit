@@ -347,7 +347,10 @@ class AbstractChart<
 
     return [...new Array(Math.ceil(data.length / yAxisInterval))]
       .map((_, i) => {
-        if (verticalLinesInterval && i % verticalLinesInterval != 0) {
+        if (
+          i == 0 ||
+          (verticalLinesInterval && i % verticalLinesInterval != 0)
+        ) {
           return null;
         }
         return (
