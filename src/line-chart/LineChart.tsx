@@ -30,6 +30,12 @@ export interface LineChartData extends ChartData {
   legend?: string[];
 }
 
+export interface LinePoint {
+  x: number;
+  y: number;
+  index: number;
+}
+
 export interface LineChartProps extends AbstractChartProps {
   /**
    * Data for the chart.
@@ -573,21 +579,38 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     const datas = this.getDatas(data);
     const baseHeight = this.calcBaseHeight(datas, height);
 
+    const toPoint = (data, length, index): LinePoint => {
+      const x = (index * (width - paddingRight)) / length + paddingRight;
+      const y =
+        ((baseHeight - this.calcHeight(data, datas, height)) / 4) * 3 +
+        paddingTop;
+      return { x, y, index };
+    };
+
     const toPoints = (
       dataset: Dataset,
       lines: { data: number | null; index: number }[][]
-    ) => {
-      return lines.map(line =>
-        line.map(({ data, index }) => {
-          const x =
-            (index * (width - paddingRight)) / dataset.data.length +
-            paddingRight;
-          const y =
-            ((baseHeight - this.calcHeight(data, datas, height)) / 4) * 3 +
-            paddingTop;
-          return { point: `${x},${y}`, index };
-        })
-      );
+    ): { points: LinePoint[]; left?: LinePoint; right?: LinePoint }[] => {
+      return lines.map(line => {
+        const length = dataset.data.length;
+        const points = line.map(({ data, index }) =>
+          toPoint(data, length, index)
+        );
+        const extremLeft = line.length > 0 ? line[0] : undefined;
+        const extremRight = line.length > 0 ? line[line.length - 1] : undefined;
+
+        //we extract the corresponding value for 0
+        //this is interesting in case 0 is between max and min or top or bottom
+        //we then have a clear right -> left back closing value
+        //TODO since the 0 value is at most at {left} and {right} from this subset, we can add it to the line itself
+        const left = extremLeft
+          ? toPoint(0, length, extremLeft.index)
+          : undefined;
+        const right = extremRight
+          ? toPoint(0, length, extremRight.index)
+          : undefined;
+        return { points, left, right };
+      });
     };
     const skipped = this.props.dataSkippedSegments || [];
     const avoid = this.props.hidePointsAtIndex || [];
@@ -596,7 +619,11 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     data.forEach((dataset, index) => {
       const length = dataset.data.length;
 
-      var lines: { point: string; index: number }[][] = [];
+      var lines: {
+        points: LinePoint[];
+        left?: LinePoint;
+        right?: LinePoint;
+      }[] = [];
 
       const can_skip =
         !!skipped && skipped.length > 0 && skipped.length >= length;
@@ -624,7 +651,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       }
 
       lines.forEach((points, index) => {
-        var x1: string | number =
+        /*var x1: string | number =
           paddingRight +
           ((width - paddingRight) / dataset.data.length) *
             (dataset.data.length - 1);
@@ -640,14 +667,19 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
           const first = points[0];
           x2 = first.point.split(",")[0];
         }
-        const y2 = (height / 4) * 3 + paddingTop;
+        const y2 = (height / 4) * 3 + paddingTop;*/
+        const result = [...points.points];
+        if (points.right) result.push(points.right);
+        if (points.left) result.push(points.left);
+        if (result.length == 0) return;
+        /*
+              points.map(({ point }) => point).join(" ") +
+              ` ${x1},${y1} ${x2},${y2}`
+*/
         output.push(
           <Polygon
             key={index}
-            points={
-              points.map(({ point }) => point).join(" ") +
-              ` ${x1},${y1} ${x2},${y2}`
-            }
+            points={result.map(p => `${p.x},${p.y}`).join(" ")}
             fill={`url(#fillShadowGradient${
               useColorFromDataset ? `_${index}` : ""
             })`}

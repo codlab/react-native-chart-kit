@@ -8,6 +8,11 @@ import { ChartData, Dataset } from "../HelperTypes";
 export interface LineChartData extends ChartData {
   legend?: string[];
 }
+export interface LinePoint {
+  x: number;
+  y: number;
+  index: number;
+}
 export interface LineChartProps extends AbstractChartProps {
   /**
    * Data for the chart.
