@@ -590,7 +590,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     const toPoints = (
       dataset: Dataset,
       lines: { data: number | null; index: number }[][]
-    ): { points: LinePoint[]; left?: LinePoint; right?: LinePoint }[] => {
+    ): LinePoint[][] => {
       return lines.map(line => {
         const length = dataset.data.length;
         const points = line.map(({ data, index }) =>
@@ -599,17 +599,13 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
         const extremLeft = line.length > 0 ? line[0] : undefined;
         const extremRight = line.length > 0 ? line[line.length - 1] : undefined;
 
-        //we extract the corresponding value for 0
-        //this is interesting in case 0 is between max and min or top or bottom
-        //we then have a clear right -> left back closing value
-        //TODO since the 0 value is at most at {left} and {right} from this subset, we can add it to the line itself
-        const left = extremLeft
-          ? toPoint(0, length, extremLeft.index)
-          : undefined;
-        const right = extremRight
-          ? toPoint(0, length, extremRight.index)
-          : undefined;
-        return { points, left, right };
+        //add the last point from 0 relative to the line
+        if (extremRight) points.push(toPoint(0, length, extremRight.index));
+        //then add the "first" points from 0 relative to the line
+        if (extremLeft) points.push(toPoint(0, length, extremLeft.index));
+        //it then help closing the polygon which will be drawn
+
+        return points;
       });
     };
     const skipped = this.props.dataSkippedSegments || [];
@@ -619,11 +615,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     data.forEach((dataset, index) => {
       const length = dataset.data.length;
 
-      var lines: {
-        points: LinePoint[];
-        left?: LinePoint;
-        right?: LinePoint;
-      }[] = [];
+      var lines: LinePoint[][] = [];
 
       const can_skip =
         !!skipped && skipped.length > 0 && skipped.length >= length;
@@ -651,35 +643,12 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
       }
 
       lines.forEach((points, index) => {
-        /*var x1: string | number =
-          paddingRight +
-          ((width - paddingRight) / dataset.data.length) *
-            (dataset.data.length - 1);
-        if (points.length > 0) {
-          //here, we check if we need to get the last point of the line
-          const last = points[points.length - 1];
-          x1 = last.point.split(",")[0];
-        }
-        const y1 = (height / 4) * 3 + paddingTop;
-        var x2: string | number = paddingRight;
-        if (points.length > 0 && points[0].index > 0) {
-          //here we check if we need to get the first line's point x to make the upper shadow
-          const first = points[0];
-          x2 = first.point.split(",")[0];
-        }
-        const y2 = (height / 4) * 3 + paddingTop;*/
-        const result = [...points.points];
-        if (points.right) result.push(points.right);
-        if (points.left) result.push(points.left);
-        if (result.length == 0) return;
-        /*
-              points.map(({ point }) => point).join(" ") +
-              ` ${x1},${y1} ${x2},${y2}`
-*/
+        if (points.length == 0) return;
+
         output.push(
           <Polygon
             key={index}
-            points={result.map(p => `${p.x},${p.y}`).join(" ")}
+            points={points.map(p => `${p.x},${p.y}`).join(" ")}
             fill={`url(#fillShadowGradient${
               useColorFromDataset ? `_${index}` : ""
             })`}
